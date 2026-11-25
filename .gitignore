@@ -1,0 +1,90 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables and local secrets
+.env
+.env.*
+!.env.example
+
+# Django and local databases
+*.sqlite3
+*.db
+*.log
+staticfiles/
+media/*
+!media/.gitkeep
+
+# IDE and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Generated datasets and derived arrays (download/regenerate locally)
+datasets/**/*.csv
+datasets/**/*.arff
+datasets/**/*.data
+datasets/**/*.parquet
+datasets/**/*.zip
+datasets/*.csv
+datasets/*.arff
+datasets/*.data
+datasets/*.parquet
+datasets/*.zip
+ml/artifacts/*.npy
+
+# Candidate/alternative models; inference uses final_model.joblib instead
+ml/artifacts/models/
+ml/artifacts/*.joblib
+!ml/artifacts/final_model.joblib
+!ml/artifacts/preprocessor.joblib
+saved_models/*.pkl
+saved_models/*.joblib
+
+# Personal reports and scratch automation
+scratch/
+*.docx
+*.pdf
+/temp_readme.md
+/query
+
+# Screenshots with account identifiers, local IP, or Django debug details
+/documentation/screenshots/01_home_page.png
+/documentation/screenshots/02_about_page.png
+/documentation/screenshots/05_404_error_page.png
+/documentation/screenshots/06_empty_dashboard_state.png
+/documentation/screenshots/12_user_dashboard.png
+/documentation/screenshots/13_prediction_history.png
+/documentation/screenshots/17_live_monitor_autostart.png
+
+# Jupyter and test/tool caches
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+coverage.xml
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak

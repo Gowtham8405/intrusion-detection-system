@@ -1,0 +1,16 @@
+{
+    "selected_model_name": "Random Forest",
+    "selected_model_filename": "random_forest.joblib",
+    "num_features": 188,
+    "train_samples": 47554,
+    "val_samples": 8391,
+    "random_state": 42,
+    "validation_metrics": {
+        "accuracy": 0.9622214277201764,
+        "precision": 0.9634489222118088,
+        "recall": 0.9390986601705238,
+        "f1_score": 0.9511179645335389,
+        "train_time_sec": 1.709,
+        "pred_time_sec": 0.0335
+    }
+}

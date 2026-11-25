@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+
+{% block title %}Intrusion Detection Engine{% endblock %}
+
+{% block content %}
+
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+    <div>
+        <h1>🔍 Intrusion Detection Engine</h1>
+        <p>Input network flow parameters below to run real-time Random Forest intrusion classification.</p>
+    </div>
+    
+    <div style="display:flex; gap:0.5rem;">
+        <a href="{% url 'detector:detect' %}?preset=normal" class="btn btn-outline" style="font-size:0.85rem; padding:6px 12px; border:1px solid rgba(16,185,129,0.4); color:#10b981;">
+            ⚡ Load Normal Sample
+        </a>
+        <a href="{% url 'detector:detect' %}?preset=attack" class="btn btn-outline" style="font-size:0.85rem; padding:6px 12px; border:1px solid rgba(239,68,68,0.4); color:#ef4444;">
+            ⚡ Load Attack Sample
+        </a>
+    </div>
+</div>
+
+<!-- Prediction Result Card -->
+{% if result %}
+<div class="result-card" style="margin-bottom: 2rem; border-radius: 12px; padding: 1.5rem; background: var(--color-bg-card); border: 2px solid {% if result.is_attack %}var(--color-danger){% else %}var(--color-success){% endif %}; box-shadow: 0 0 25px {% if result.is_attack %}rgba(239, 68, 68, 0.25){% else %}rgba(16, 185, 129, 0.25){% endif %};">
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 2rem;">{% if result.is_attack %}🚨{% else %}🛡️{% endif %}</span>
+            <div>
+                <span style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; color: var(--color-text-secondary); font-weight: 700;">Classification Output</span>
+                <h2 style="font-size: 1.6rem; font-weight: 800; color: {% if result.is_attack %}var(--color-danger){% else %}var(--color-success){% endif %}; margin-top: 2px;">
+                    {{ result.prediction }}
+                </h2>
+            </div>
+        </div>
+
+        <div style="text-align: right;">
+            <span style="display: block; font-size: 0.75rem; color: var(--color-text-secondary);">Model Confidence</span>
+            <span style="font-size: 1.5rem; font-weight: 800; color: var(--color-accent); font-family: var(--font-mono);">
+                {{ result.confidence }}%
+            </span>
+        </div>
+    </div>
+
+    <!-- Probability Progress Bar -->
+    <div style="margin: 1rem 0;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; font-weight: 600;">
+            <span style="color: var(--color-success);">Normal Prob: {{ result.prob_normal }}%</span>
+            <span style="color: var(--color-danger);">Attack Prob: {{ result.prob_attack }}%</span>
+        </div>
+        <div style="height: 10px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; display: flex;">
+            <div style="width: {{ result.prob_normal }}%; background: var(--color-success); transition: width 0.5s ease;"></div>
+            <div style="width: {{ result.prob_attack }}%; background: var(--color-danger); transition: width 0.5s ease;"></div>
+        </div>
+    </div>
+
+    <p style="font-size: 0.95rem; color: var(--color-text-primary); margin-top: 1rem; line-height: 1.5; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">
+        {{ result.explanation }}
+    </p>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.8rem; color: var(--color-text-muted);">
+        <span>Timestamp: <code>{{ result.timestamp }}</code></span>
+        <span>Classifier: <code>RandomForest (100 Trees)</code></span>
+    </div>
+</div>
+{% endif %}
+
+<!-- Form Section -->
+<form id="detection-form" method="POST" action="{% url 'detector:detect' %}" class="card" style="padding: 1.5rem; background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border);">
+    {% csrf_token %}
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.75rem;">
+        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--color-text-primary);">
+            📊 Network Traffic Feature Parameters (42 Attributes)
+        </h2>
+        <span style="font-size: 0.8rem; color: var(--color-text-muted);">
+            All fields required for inference
+        </span>
+    </div>
+
+    <!-- Processing Indicator Banner -->
+    <div id="processing-banner" style="display: none; background: rgba(0, 212, 255, 0.15); border: 1px solid var(--color-accent); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center;">
+        <div style="display: inline-block; width: 24px; height: 24px; border: 3px solid rgba(0,212,255,0.3); border-radius: 50%; border-top-color: var(--color-accent); animation: spin 1s linear infinite; vertical-align: middle; margin-right: 10px;"></div>
+        <span style="font-weight: 700; color: var(--color-accent); font-size: 1rem;">
+            Analyzing network traffic... Running Random Forest inference engine.
+        </span>
+    </div>
+
+    <!-- Input Groups Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Group 1: Basic & Protocol Features -->
+        <div class="input-group-box" style="background: var(--color-surface); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--color-border);">
+            <h3 style="font-size: 0.95rem; color: var(--color-accent); margin-bottom: 1rem; border-bottom: 1px dashed var(--color-border); padding-bottom: 0.4rem;">
+                1. Basic & Protocol Attributes
+            </h3>
+            
+            <div class="form-field" style="margin-bottom: 0.8rem;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--color-text-secondary); margin-bottom:3px;">Protocol (proto)</label>
+                <select name="proto" required style="width:100%; padding:8px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                    {% for p in proto_choices %}
+                    <option value="{{ p }}" {% if form_data.proto == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-field" style="margin-bottom: 0.8rem;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--color-text-secondary); margin-bottom:3px;">Service (service)</label>
+                <select name="service" required style="width:100%; padding:8px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                    {% for s in service_choices %}
+                    <option value="{{ s }}" {% if form_data.service == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-field" style="margin-bottom: 0.8rem;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--color-text-secondary); margin-bottom:3px;">State (state)</label>
+                <select name="state" required style="width:100%; padding:8px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                    {% for st in state_choices %}
+                    <option value="{{ st }}" {% if form_data.state == st %}selected{% endif %}>{{ st }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-field" style="margin-bottom: 0.8rem;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--color-text-secondary); margin-bottom:3px;">Duration (dur)</label>
+                <input type="number" step="any" name="dur" value="{{ form_data.dur }}" required style="width:100%; padding:8px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src Pkts (spkts)</label>
+                    <input type="number" name="spkts" value="{{ form_data.spkts }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst Pkts (dpkts)</label>
+                    <input type="number" name="dpkts" value="{{ form_data.dpkts }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src Bytes (sbytes)</label>
+                    <input type="number" name="sbytes" value="{{ form_data.sbytes }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst Bytes (dbytes)</label>
+                    <input type="number" name="dbytes" value="{{ form_data.dbytes }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src TTL (sttl)</label>
+                    <input type="number" name="sttl" value="{{ form_data.sttl }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst TTL (dttl)</label>
+                    <input type="number" name="dttl" value="{{ form_data.dttl }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Group 2: Rate, Load & Loss Features -->
+        <div class="input-group-box" style="background: var(--color-surface); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--color-border);">
+            <h3 style="font-size: 0.95rem; color: var(--color-accent); margin-bottom: 1rem; border-bottom: 1px dashed var(--color-border); padding-bottom: 0.4rem;">
+                2. Throughput, Load & Loss Metrics
+            </h3>
+
+            <div class="form-field" style="margin-bottom: 0.8rem;">
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:var(--color-text-secondary); margin-bottom:3px;">Packet Rate (rate)</label>
+                <input type="number" step="any" name="rate" value="{{ form_data.rate }}" required style="width:100%; padding:8px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src Load (sload)</label>
+                    <input type="number" step="any" name="sload" value="{{ form_data.sload }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst Load (dload)</label>
+                    <input type="number" step="any" name="dload" value="{{ form_data.dload }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src Loss (sloss)</label>
+                    <input type="number" name="sloss" value="{{ form_data.sloss }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst Loss (dloss)</label>
+                    <input type="number" name="dloss" value="{{ form_data.dloss }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src Interpacket (sinpkt)</label>
+                    <input type="number" step="any" name="sinpkt" value="{{ form_data.sinpkt }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst Interpacket (dinpkt)</label>
+                    <input type="number" step="any" name="dinpkt" value="{{ form_data.dinpkt }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src Jitter (sjit)</label>
+                    <input type="number" step="any" name="sjit" value="{{ form_data.sjit }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst Jitter (djit)</label>
+                    <input type="number" step="any" name="djit" value="{{ form_data.djit }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Group 3: TCP Window, RTT & Size Features -->
+        <div class="input-group-box" style="background: var(--color-surface); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--color-border);">
+            <h3 style="font-size: 0.95rem; color: var(--color-accent); margin-bottom: 1rem; border-bottom: 1px dashed var(--color-border); padding-bottom: 0.4rem;">
+                3. TCP Window & Packet Size Metrics
+            </h3>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src Win (swin)</label>
+                    <input type="number" name="swin" value="{{ form_data.swin }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst Win (dwin)</label>
+                    <input type="number" name="dwin" value="{{ form_data.dwin }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src TCP Base (stcpb)</label>
+                    <input type="number" name="stcpb" value="{{ form_data.stcpb }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst TCP Base (dtcpb)</label>
+                    <input type="number" name="dtcpb" value="{{ form_data.dtcpb }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.4rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.7rem; color:var(--color-text-secondary);">TCP RTT</label>
+                    <input type="number" step="any" name="tcprtt" value="{{ form_data.tcprtt }}" required style="width:100%; padding:5px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.7rem; color:var(--color-text-secondary);">SYNACK</label>
+                    <input type="number" step="any" name="synack" value="{{ form_data.synack }}" required style="width:100%; padding:5px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.7rem; color:var(--color-text-secondary);">ACKDAT</label>
+                    <input type="number" step="any" name="ackdat" value="{{ form_data.ackdat }}" required style="width:100%; padding:5px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Src Mean (smean)</label>
+                    <input type="number" name="smean" value="{{ form_data.smean }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Dst Mean (dmean)</label>
+                    <input type="number" name="dmean" value="{{ form_data.dmean }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Group 4: Connection & Context Count Features -->
+        <div class="input-group-box" style="background: var(--color-surface); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--color-border);">
+            <h3 style="font-size: 0.95rem; color: var(--color-accent); margin-bottom: 1rem; border-bottom: 1px dashed var(--color-border); padding-bottom: 0.4rem;">
+                4. Connection & Context Counts
+            </h3>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">Trans Depth</label>
+                    <input type="number" name="trans_depth" value="{{ form_data.trans_depth }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">HTTP Body Len</label>
+                    <input type="number" name="response_body_len" value="{{ form_data.response_body_len }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">ct_srv_src</label>
+                    <input type="number" name="ct_srv_src" value="{{ form_data.ct_srv_src }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">ct_state_ttl</label>
+                    <input type="number" name="ct_state_ttl" value="{{ form_data.ct_state_ttl }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">ct_dst_ltm</label>
+                    <input type="number" name="ct_dst_ltm" value="{{ form_data.ct_dst_ltm }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">ct_src_dport_ltm</label>
+                    <input type="number" name="ct_src_dport_ltm" value="{{ form_data.ct_src_dport_ltm }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">ct_dst_sport_ltm</label>
+                    <input type="number" name="ct_dst_sport_ltm" value="{{ form_data.ct_dst_sport_ltm }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">ct_dst_src_ltm</label>
+                    <input type="number" name="ct_dst_src_ltm" value="{{ form_data.ct_dst_src_ltm }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.4rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.7rem; color:var(--color-text-secondary);">is_ftp_login</label>
+                    <input type="number" name="is_ftp_login" value="{{ form_data.is_ftp_login }}" required style="width:100%; padding:5px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.7rem; color:var(--color-text-secondary);">ct_ftp_cmd</label>
+                    <input type="number" name="ct_ftp_cmd" value="{{ form_data.ct_ftp_cmd }}" required style="width:100%; padding:5px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.7rem; color:var(--color-text-secondary);">is_sm_ips</label>
+                    <input type="number" name="is_sm_ips_ports" value="{{ form_data.is_sm_ips_ports }}" required style="width:100%; padding:5px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">ct_src_ltm</label>
+                    <input type="number" name="ct_src_ltm" value="{{ form_data.ct_src_ltm }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">ct_srv_dst</label>
+                    <input type="number" name="ct_srv_dst" value="{{ form_data.ct_srv_dst }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="margin-top:0.5rem;">
+                <label style="display:block; font-size:0.75rem; color:var(--color-text-secondary);">ct_flw_http_mthd</label>
+                <input type="number" name="ct_flw_http_mthd" value="{{ form_data.ct_flw_http_mthd }}" required style="width:100%; padding:6px; background:var(--color-bg-secondary); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px;">
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Submit Button Section -->
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border); text-align: center;">
+        <button type="submit" id="submit-btn" class="btn btn-primary" style="padding: 12px 36px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #00d4ff, #0077ff); border: none; color: #fff; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,212,255,0.3); transition: all 0.2s ease;">
+            🛡️ Detect Intrusion
+        </button>
+    </div>
+</form>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("detection-form");
+    const submitBtn = document.getElementById("submit-btn");
+    const processingBanner = document.getElementById("processing-banner");
+
+    form.addEventListener("submit", function(e) {
+        // Disable button immediately to prevent duplicate submissions
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = "0.6";
+        submitBtn.style.cursor = "not-allowed";
+        submitBtn.innerHTML = "⏳ Analyzing Network Traffic...";
+
+        // Display visible processing indicator
+        if (processingBanner) {
+            processingBanner.style.display = "block";
+            processingBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Safety fallback timeout to re-enable button if request takes over 20s
+        setTimeout(function() {
+            if (submitBtn.disabled) {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = "1";
+                submitBtn.style.cursor = "pointer";
+                submitBtn.innerHTML = "🛡️ Detect Intrusion";
+                if (processingBanner) processingBanner.style.display = "none";
+            }
+        }, 20000);
+    });
+});
+</script>
+{% endblock %}

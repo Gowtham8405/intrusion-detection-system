@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Based Intrusion Detection System — Detect network intrusions using Machine Learning. College academic project.">
+    <meta name="author" content="IDS Project Team">
+    <title>{% block title %}AI-Based IDS{% endblock %} | Intrusion Detection System</title>
+
+    <!-- Google Fonts — Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Animated Background Grid -->
+    <div class="bg-grid"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="{% url 'detector:home' %}" class="navbar-brand">
+                <span class="brand-icon">🛡️</span>
+                <span>IDS</span>
+            </a>
+
+            <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
+
+            <ul class="nav-links">
+                <li><a href="{% url 'detector:home' %}">🏠 Home</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'detector:dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'detector:analytics' %}">📈 Analytics</a></li>
+                <li><a href="{% url 'detector:detect' %}">🔍 Detect</a></li>
+                <li><a href="{% url 'detector:live_monitor' %}">📡 Live Monitor</a></li>
+                <li><a href="{% url 'detector:history' %}">📋 History</a></li>
+                {% endif %}
+                <li><a href="{% url 'detector:about' %}">ℹ️ About</a></li>
+                {% if user.is_authenticated %}
+                <li style="margin-left:1rem;"><span style="color:var(--color-accent); font-size:0.85rem; font-weight:600;">👤 {{ user.username }}</span></li>
+                <li><a href="{% url 'detector:logout' %}" style="color:var(--color-danger); font-weight:600;">🚪 Logout</a></li>
+                {% else %}
+                <li style="margin-left:1rem;"><a href="{% url 'detector:login' %}" style="color:var(--color-accent); font-weight:600;">🔐 Login</a></li>
+                <li><a href="{% url 'detector:register' %}" class="btn btn-primary" style="padding:4px 12px; font-size:0.85rem; border-radius:6px; color:#fff;">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="messages-container" style="max-width:1280px; margin:0 auto; padding: 1rem 2rem 0;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" style="padding:12px 20px; border-radius:8px; margin-bottom:8px; font-size:0.9rem;
+            {% if message.tags == 'success' %}background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#10b981;
+            {% elif message.tags == 'error' %}background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#ef4444;
+            {% elif message.tags == 'warning' %}background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); color:#f59e0b;
+            {% else %}background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.3); color:#6366f1;{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 AI-Based Intrusion Detection System &mdash; College Academic Project</p>
+        <p style="margin-top: 4px;">
+            Built with
+            <a href="https://www.djangoproject.com/" target="_blank" rel="noopener">Django</a> &amp;
+            <a href="https://scikit-learn.org/" target="_blank" rel="noopener">Scikit-learn</a>
+        </p>
+    </footer>
+
+    <!-- Main JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

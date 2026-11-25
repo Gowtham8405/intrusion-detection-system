@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>ℹ️ About This Project</h1>
+    <p>Learn about the methodology, dataset, and technology behind this system.</p>
+</div>
+
+<div class="about-content">
+
+    <h2>🎯 Project Objective</h2>
+    <p>
+        The AI-Based Intrusion Detection System (IDS) is a college academic project designed
+        to demonstrate how machine learning algorithms can be applied to network security.
+        The system analyzes network traffic features and classifies connections as
+        <strong>Normal</strong> or <strong>Attack</strong> using pre-trained ML models.
+    </p>
+
+    <h2>📊 Dataset</h2>
+    <p>
+        This project uses the <strong>NSL-KDD</strong> dataset, which is a refined and improved
+        version of the original KDD Cup 1999 dataset. It is one of the most widely used benchmark
+        datasets in intrusion detection research. The dataset contains 41 network traffic features
+        and covers the following attack categories:
+    </p>
+    <ul>
+        <li><strong>DoS (Denial of Service)</strong> — Flooding the network to make services unavailable</li>
+        <li><strong>Probe</strong> — Scanning the network to gather information</li>
+        <li><strong>R2L (Remote to Local)</strong> — Unauthorized access from a remote machine</li>
+        <li><strong>U2R (User to Root)</strong> — Unauthorized privilege escalation</li>
+    </ul>
+
+    <h2>🤖 Machine Learning Approach</h2>
+    <p>
+        The system trains and evaluates multiple classification algorithms to identify the most
+        effective model for intrusion detection. Algorithms being considered include:
+    </p>
+    <ul>
+        <li>Random Forest Classifier</li>
+        <li>Decision Tree Classifier</li>
+        <li>K-Nearest Neighbors (KNN)</li>
+        <li>Support Vector Machine (SVM)</li>
+    </ul>
+
+    <h2>🛠️ Technology Stack</h2>
+    <ul>
+        <li><strong>Backend:</strong> Python 3.11, Django 4.2</li>
+        <li><strong>Database:</strong> SQLite</li>
+        <li><strong>Frontend:</strong> HTML5, CSS3, JavaScript</li>
+        <li><strong>ML Libraries:</strong> Scikit-learn, Pandas, NumPy</li>
+        <li><strong>Visualization:</strong> Matplotlib</li>
+        <li><strong>Model Persistence:</strong> Joblib</li>
+    </ul>
+
+    <h2>⚠️ Disclaimer</h2>
+    <p>
+        This project is developed strictly for <strong>academic and educational purposes</strong>.
+        It uses a publicly available dataset and does not involve any live network monitoring,
+        real cyber attacks, or unauthorized access to any systems. All detection is performed
+        on pre-recorded, anonymized network traffic data.
+    </p>
+
+</div>
+
+{% endblock %}

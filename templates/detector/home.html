@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        AI-Powered Network Security
+    </div>
+
+    <h1>AI-Based Intrusion<br>Detection System</h1>
+
+    <p class="hero-description">
+        A machine learning–powered system that analyzes network traffic patterns
+        to detect and classify potential cyber threats in real time.
+        Built for academic research using the NSL-KDD public dataset.
+    </p>
+
+    <div class="hero-actions">
+        <a href="{% url 'detector:detect' %}" class="btn btn-primary">
+            🔍 Start Detection
+        </a>
+        <a href="{% url 'detector:about' %}" class="btn btn-outline">
+            Learn More →
+        </a>
+    </div>
+</section>
+
+
+<!-- Quick Stats -->
+<section class="stats-row">
+    <div class="stat-card">
+        <div class="stat-value">4</div>
+        <div class="stat-label">Attack Categories</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">41</div>
+        <div class="stat-label">Network Features</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">125K+</div>
+        <div class="stat-label">Training Samples</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">ML</div>
+        <div class="stat-label">Powered Detection</div>
+    </div>
+</section>
+
+
+<!-- Feature Cards -->
+<section>
+    <div class="section-header">
+        <h2>System Modules</h2>
+        <p>Explore the key components of the Intrusion Detection System</p>
+        <hr class="section-divider">
+    </div>
+
+    <div class="features-grid">
+
+        <a href="{% url 'detector:dashboard' %}" class="feature-card">
+            <div class="card-icon dashboard">📊</div>
+            <h3>Dashboard</h3>
+            <p>
+                Visual overview of detection statistics, model accuracy,
+                and real-time threat distribution charts.
+            </p>
+            <span class="card-arrow">Open Dashboard →</span>
+        </a>
+
+        <a href="{% url 'detector:detect' %}" class="feature-card">
+            <div class="card-icon detect">🔍</div>
+            <h3>Intrusion Detection</h3>
+            <p>
+                Submit network traffic data and get instant ML-based
+                classification — Normal or Attack with confidence score.
+            </p>
+            <span class="card-arrow">Run Detection →</span>
+        </a>
+
+        <a href="{% url 'detector:history' %}" class="feature-card">
+            <div class="card-icon history">📋</div>
+            <h3>Prediction History</h3>
+            <p>
+                Browse through all past detection results stored in the
+                database with filtering and search capabilities.
+            </p>
+            <span class="card-arrow">View History →</span>
+        </a>
+
+        <a href="{% url 'detector:about' %}" class="feature-card">
+            <div class="card-icon about">ℹ️</div>
+            <h3>About Project</h3>
+            <p>
+                Learn about the methodology, dataset, ML algorithms,
+                and the technology stack powering this system.
+            </p>
+            <span class="card-arrow">Read More →</span>
+        </a>
+
+    </div>
+</section>
+
+
+<!-- Technology Stack -->
+<section style="margin-bottom: var(--space-2xl);">
+    <div class="section-header">
+        <h2>Technology Stack</h2>
+        <p>Built with trusted open-source technologies</p>
+        <hr class="section-divider">
+    </div>
+
+    <div class="tech-grid">
+        <span class="tech-badge"><span class="tech-dot python"></span> Python 3.11</span>
+        <span class="tech-badge"><span class="tech-dot django"></span> Django 4.2</span>
+        <span class="tech-badge"><span class="tech-dot sklearn"></span> Scikit-learn</span>
+        <span class="tech-badge"><span class="tech-dot pandas"></span> Pandas</span>
+        <span class="tech-badge"><span class="tech-dot numpy"></span> NumPy</span>
+        <span class="tech-badge"><span class="tech-dot matplotlib"></span> Matplotlib</span>
+        <span class="tech-badge"><span class="tech-dot sqlite"></span> SQLite</span>
+    </div>
+</section>
+
+{% endblock %}

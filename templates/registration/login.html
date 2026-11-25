@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Login — Intrusion Detection System{% endblock %}
+
+{% block content %}
+
+<div style="max-width: 440px; margin: 3rem auto; padding: 2rem; background: var(--color-bg-card); border-radius: 16px; border: 1px solid var(--color-border); box-shadow: var(--shadow-lg);">
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <span style="font-size: 3rem; display: block; margin-bottom: 0.5rem;">🔐</span>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--color-text-primary);">System Login</h1>
+        <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-top: 4px;">
+            Access your secure intrusion detection workspace
+        </p>
+    </div>
+
+    <form method="POST" action="{% url 'detector:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 1.25rem;">
+            <label for="username" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px;">
+                Username
+            </label>
+            <input type="text" id="username" name="username" required autofocus placeholder="Enter your username"
+                   style="width: 100%; padding: 10px 14px; background: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s;">
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label for="password" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px;">
+                Password
+            </label>
+            <input type="password" id="password" name="password" required placeholder="Enter your password"
+                   style="width: 100%; padding: 10px 14px; background: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s;">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #00d4ff, #0077ff); border: none; color: #fff; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,212,255,0.3); transition: all 0.2s;">
+            🔓 Log In
+        </button>
+    </form>
+
+    <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--color-text-muted); border-top: 1px solid var(--color-border); padding-top: 1rem;">
+        Don't have an account? 
+        <a href="{% url 'detector:register' %}" style="color: var(--color-accent); font-weight: 600;">Create one here</a>
+    </div>
+</div>
+
+{% endblock %}

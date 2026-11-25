@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}User Dashboard — Intrusion Detection System{% endblock %}
+
+{% block content %}
+
+<!-- Header Section -->
+<div class="page-header" style="margin-bottom: 2rem;">
+    <h1>👋 Welcome back, {{ request.user.username }}!</h1>
+    <p>Monitor your real-time network traffic intrusion detection activity & statistics.</p>
+</div>
+
+<!-- Summary Cards Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    
+    <!-- Card 1: Total Predictions -->
+    <div class="card" style="padding: 1.25rem; background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border); display: flex; align-items: center; gap: 1rem;">
+        <div style="font-size: 2.2rem; background: rgba(0, 212, 255, 0.12); border-radius: 10px; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; color: var(--color-accent);">
+            📊
+        </div>
+        <div>
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-secondary); font-weight: 700; display: block;">
+                Total Predictions
+            </span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: var(--color-text-primary); font-family: var(--font-mono);">
+                {{ total_predictions }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Card 2: Normal Traffic -->
+    <div class="card" style="padding: 1.25rem; background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border); display: flex; align-items: center; gap: 1rem;">
+        <div style="font-size: 2.2rem; background: rgba(16, 185, 129, 0.12); border-radius: 10px; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; color: var(--color-success);">
+            🛡️
+        </div>
+        <div>
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-secondary); font-weight: 700; display: block;">
+                Normal Traffic
+            </span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: var(--color-success); font-family: var(--font-mono);">
+                {{ normal_count }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Card 3: Attacks Detected -->
+    <div class="card" style="padding: 1.25rem; background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border); display: flex; align-items: center; gap: 1rem;">
+        <div style="font-size: 2.2rem; background: rgba(239, 68, 68, 0.12); border-radius: 10px; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; color: var(--color-danger);">
+            🚨
+        </div>
+        <div>
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-secondary); font-weight: 700; display: block;">
+                Attacks Detected
+            </span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: var(--color-danger); font-family: var(--font-mono);">
+                {{ attacks_count }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Card 4: Threat Percentage -->
+    <div class="card" style="padding: 1.25rem; background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border); display: flex; align-items: center; gap: 1rem;">
+        <div style="font-size: 2.2rem; background: rgba(245, 158, 11, 0.12); border-radius: 10px; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; color: var(--color-warning);">
+            ⚠️
+        </div>
+        <div>
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-secondary); font-weight: 700; display: block;">
+                Threat Rate
+            </span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: var(--color-warning); font-family: var(--font-mono);">
+                {{ threat_percentage }}%
+            </span>
+        </div>
+    </div>
+
+</div>
+
+{% if total_predictions > 0 %}
+
+<!-- Traffic Breakdown Visualization -->
+<div class="card" style="margin-bottom: 2rem; padding: 1.5rem; background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary);">
+            📈 Traffic Breakdown & Classification Distribution
+        </h2>
+        <span style="font-size: 0.8rem; color: var(--color-text-muted);">
+            User Session Summary
+        </span>
+    </div>
+
+    <!-- Progress Bar -->
+    <div style="height: 14px; width: 100%; background: rgba(255,255,255,0.08); border-radius: 7px; overflow: hidden; display: flex; margin-bottom: 1rem;">
+        <div style="width: {{ normal_percentage }}%; background: var(--color-success); transition: width 0.5s ease;" title="Normal: {{ normal_percentage }}%"></div>
+        <div style="width: {{ threat_percentage }}%; background: var(--color-danger); transition: width 0.5s ease;" title="Attacks: {{ threat_percentage }}%"></div>
+    </div>
+
+    <!-- Legend -->
+    <div style="display: flex; gap: 1.5rem; font-size: 0.85rem; font-weight: 600;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 12px; height: 12px; border-radius: 3px; background: var(--color-success); display: inline-block;"></span>
+            <span style="color: var(--color-text-primary);">Normal Traffic: {{ normal_count }} ({{ normal_percentage }}%)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 12px; height: 12px; border-radius: 3px; background: var(--color-danger); display: inline-block;"></span>
+            <span style="color: var(--color-text-primary);">Attacks Detected: {{ attacks_count }} ({{ threat_percentage }}%)</span>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Predictions Section -->
+<div class="card" style="padding: 1.5rem; background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary);">
+            ⏱️ Recent Activity (Latest 5 Predictions)
+        </h2>
+        <a href="{% url 'detector:history' %}" class="btn btn-outline" style="font-size: 0.85rem; padding: 6px 14px; border: 1px solid var(--color-accent-glow); color: var(--color-accent); border-radius: 6px; text-decoration: none; font-weight: 600;">
+            📋 View Full History &rarr;
+        </a>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--color-border); color: var(--color-text-secondary); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">
+                    <th style="padding: 10px;">ID</th>
+                    <th style="padding: 10px;">Timestamp</th>
+                    <th style="padding: 10px;">Source IP</th>
+                    <th style="padding: 10px;">Result</th>
+                    <th style="padding: 10px;">Confidence</th>
+                    <th style="padding: 10px;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recent_predictions %}
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <td style="padding: 12px; color: var(--color-text-muted);">#{{ rec.id }}</td>
+                    <td style="padding: 12px; font-family: var(--font-mono); font-size: 0.85rem;">{{ rec.timestamp|date:"Y-m-d H:i:s" }}</td>
+                    <td style="padding: 12px; font-family: var(--font-mono);">{{ rec.source_ip }}</td>
+                    <td style="padding: 12px; font-weight: 700; color: {% if rec.is_threat %}var(--color-danger){% else %}var(--color-success){% endif %};">
+                        {{ rec.prediction }}
+                    </td>
+                    <td style="padding: 12px; font-family: var(--font-mono);">{{ rec.confidence }}%</td>
+                    <td style="padding: 12px;">
+                        {% if rec.is_threat %}
+                        <span style="background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.4); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+                            THREAT DETECTED
+                        </span>
+                        {% else %}
+                        <span style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.4); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+                            CLEAN TRAFFIC
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+
+<!-- Empty Dashboard State -->
+<div class="placeholder-section" style="padding: 3.5rem 2rem; text-align: center; background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border); margin-top: 1rem;">
+    <div style="font-size: 3.5rem; margin-bottom: 1rem;">📊</div>
+    <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.5rem;">
+        Welcome to Your Intrusion Detection Dashboard
+    </h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem; max-width: 550px; margin-left: auto; margin-right: auto;">
+        No prediction activity recorded yet. Run your first network traffic detection to analyze threats and build your personal activity dashboard.
+    </p>
+    <a href="{% url 'detector:detect' %}" class="btn btn-primary" style="padding: 12px 28px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #00d4ff, #0077ff); color: #fff; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,212,255,0.3); display: inline-block;">
+        🚀 Run Your First Detection
+    </a>
+</div>
+
+{% endif %}
+
+{% endblock %}
